@@ -3,6 +3,7 @@ package ru.netology.web.page;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import lombok.val;
+import ru.netology.web.data.DataHelper;
 
 import java.util.Objects;
 
@@ -27,23 +28,7 @@ public class DashboardPage {
     }
 
     public int getCardBalance(String id) {
-        val id1 = firstCard.getAttribute("data-test-id");
-        val id2 = secondCard.getAttribute("data-test-id");
-        String cardBalance = null;
-        if (id.equals("1")) {
-            for (SelenideElement card : cards) {
-                if (Objects.equals(card.getAttribute("data-test-id"), id1)) {
-                    cardBalance = card.text();
-                }
-            }
-        }
-        if (id.equals("2")) {
-            for (SelenideElement card : cards) {
-                if (Objects.equals(card.getAttribute("data-test-id"), id2)) {
-                    cardBalance = card.text();
-                }
-            }
-        }
+        String cardBalance = cards.findBy(text(DataHelper.getCardInfo(id).getNumber().substring(16))).getText();
         return extractBalance(cardBalance);
     }
 
@@ -66,7 +51,7 @@ public class DashboardPage {
         reload.click();
     }
 
-    public void cancelMoneyTransfer(){
+    public void cancelMoneyTransfer() {
         cancel.click();
     }
 }

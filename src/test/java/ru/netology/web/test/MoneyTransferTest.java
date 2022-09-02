@@ -1,9 +1,7 @@
 package ru.netology.web.test;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 
-import com.codeborne.selenide.commands.ToString;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,87 +22,138 @@ class MoneyTransferTest {
         verificationPage.validVerify(verificationCode);
         Configuration.holdBrowserOpen = true;
     }
-    private String intToString(int cardBalance) {
-        return Integer.toString(cardBalance);
-    }
+
     @Test
     void shouldTransferMoneyFromSecondCardToFirstCard() {
         var dashboardPage = new DashboardPage();
-        var moneyTransferPage = new MoneyTransferPage();
 
-        int expected = dashboardPage.getCardBalance("1") + 1000;
+        int expectedFC = dashboardPage.getCardBalance("1") + 1000;
+        int expectedSC = dashboardPage.getCardBalance("2") - 1000;
 
         dashboardPage.getMoneyTransferFromSecondToFirst();
-        moneyTransferPage.moneyTransfer(DataHelper.getSecondCardInfo(), "1000");
-        int actual = dashboardPage.getCardBalance("1");
+        var moneyTransferPage = new MoneyTransferPage();
+        moneyTransferPage.moneyTransfer(DataHelper.getCardInfo("2"), "1000");
 
-        Assertions.assertEquals(expected, actual);
+        int actualFC = dashboardPage.getCardBalance("1");
+        int actualSC = dashboardPage.getCardBalance("2");
+
+        Assertions.assertEquals(expectedFC, actualFC);
+        Assertions.assertEquals(expectedSC, actualSC);
     }
 
     @Test
     void shouldTransferMoneyFromFirstCardToSecondCard() {
         var dashboardPage = new DashboardPage();
-        var moneyTransferPage = new MoneyTransferPage();
 
-        int expected = dashboardPage.getCardBalance("2") + 5000;
+        int expectedSC = dashboardPage.getCardBalance("2") + 5000;
+        int expectedFC = dashboardPage.getCardBalance("1") - 5000;
 
         dashboardPage.getMoneyTransferFromFirstToSecond();
-        moneyTransferPage.moneyTransfer(DataHelper.getFirstCardInfo(), "5000");
-        int actual = dashboardPage.getCardBalance("2");
+        var moneyTransferPage = new MoneyTransferPage();
+        moneyTransferPage.moneyTransfer(DataHelper.getCardInfo("1"), "5000");
 
-        Assertions.assertEquals(expected, actual);
+        int actualSC = dashboardPage.getCardBalance("2");
+        int actualFC = dashboardPage.getCardBalance("1");
+
+        Assertions.assertEquals(expectedSC, actualSC);
+        Assertions.assertEquals(expectedFC, actualFC);
     }
 
     @Test
     void shouldReloadCardBalance() {
         var dashboardPage = new DashboardPage();
-        var moneyTransferPage = new MoneyTransferPage();
 
-        int expected = dashboardPage.getCardBalance("2");
+        int expectedFC = dashboardPage.getCardBalance("1");
+        int expectedSC = dashboardPage.getCardBalance("2");
 
         dashboardPage.reloadBalance();
-        int actual = dashboardPage.getCardBalance("2");
 
-        Assertions.assertEquals(expected, actual);
+        int actualFC = dashboardPage.getCardBalance("1");
+        int actualSC = dashboardPage.getCardBalance("2");
+
+        Assertions.assertEquals(expectedFC, actualFC);
+        Assertions.assertEquals(expectedSC, actualSC);
     }
 
     @Test
     void shouldCancelMoneyTransfer() {
         var dashboardPage = new DashboardPage();
-        var moneyTransferPage = new MoneyTransferPage();
 
-        int expected = dashboardPage.getCardBalance("2");
+        int expectedFC = dashboardPage.getCardBalance("1");
+        int expectedSC = dashboardPage.getCardBalance("2");
 
         dashboardPage.getMoneyTransferFromSecondToFirst();
         dashboardPage.cancelMoneyTransfer();
-        int actual = dashboardPage.getCardBalance("2");
 
-        Assertions.assertEquals(expected, actual);
+        int actualFC = dashboardPage.getCardBalance("1");
+        int actualSC = dashboardPage.getCardBalance("2");
+
+        Assertions.assertEquals(expectedFC, actualFC);
+        Assertions.assertEquals(expectedSC, actualSC);
     }
 
     @Test
     void shouldNotTransferIfAccountIsNotSpecified() {
         var dashboardPage = new DashboardPage();
-        var moneyTransferPage = new MoneyTransferPage();
 
         dashboardPage.getMoneyTransferFromSecondToFirst();
-        moneyTransferPage.moneyTransferWithKnownMistake("", "1000");
+        var moneyTransferPage = new MoneyTransferPage();
+        moneyTransferPage.moneyTransfer(DataHelper.getCardInfo(""), "1000");
 
-        moneyTransferPage.getError().shouldBe(Condition.visible);
+        moneyTransferPage.getError();
     }
 
     @Test
     void shouldTransferFullAmountFromAccount() {
         var dashboardPage = new DashboardPage();
-        var transferPage = new MoneyTransferPage();
-        String balance = intToString(dashboardPage.getCardBalance("1"));
+        String balance = String.valueOf((dashboardPage.getCardBalance("2")));
 
-        int expected = 0;
+        int expectedSC = 0;
+        int expectedFC = dashboardPage.getCardBalance("1") + dashboardPage.getCardBalance("2");
 
-        dashboardPage.getMoneyTransferFromFirstToSecond();
-        transferPage.moneyTransfer(DataHelper.getFirstCardInfo(), balance);
-        int actual = dashboardPage.getCardBalance("1");
+        dashboardPage.getMoneyTransferFromSecondToFirst();
+        var moneyTransferPage = new MoneyTransferPage();
+        moneyTransferPage.moneyTransfer(DataHelper.getCardInfo("2"), balance);
 
-        Assertions.assertEquals(expected, actual);
+        int actualFC = dashboardPage.getCardBalance("1");
+        int actualSC = dashboardPage.getCardBalance("2");
+
+        Assertions.assertEquals(expectedFC, actualFC);
+        Assertions.assertEquals(expectedSC, actualSC);
+    }
+
+    @Test
+    void shouldTryToTransferFromAccountWithBalanceEqualZero() {
+        var dashboardPage = new DashboardPage();
+        int checkCard = dashboardPage.getCardBalance("1");
+        String cardID1;
+        String cardID2;
+        String balance1;
+        String balance2;
+
+        if (checkCard > 0) {
+            cardID1 = "1";
+            cardID2 = "2";
+            balance1 = String.valueOf(dashboardPage.getCardBalance(cardID1));
+            balance2 = String.valueOf(dashboardPage.getCardBalance(cardID2));
+            dashboardPage.getMoneyTransferFromFirstToSecond();
+        } else {
+            cardID1 = "2";
+            cardID2 = "1";
+            balance1 = String.valueOf(dashboardPage.getCardBalance(cardID2));
+            balance2 = String.valueOf(dashboardPage.getCardBalance(cardID1));
+            dashboardPage.getMoneyTransferFromSecondToFirst();
+        }
+        int expectedFC = -100;
+        int expectedSC = Integer.parseInt(balance2) + Integer.parseInt(balance1) + 100;
+
+        var moneyTransferPage = new MoneyTransferPage();
+        moneyTransferPage.moneyTransfer(DataHelper.getCardInfo(cardID1), String.valueOf(Integer.parseInt(balance1) + 100));
+
+        int actualFC = dashboardPage.getCardBalance(cardID1);
+        int actualSC = dashboardPage.getCardBalance(cardID2);
+
+        Assertions.assertEquals(expectedFC, actualFC);
+        Assertions.assertEquals(expectedSC, actualSC);
     }
 }

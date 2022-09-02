@@ -3,7 +3,6 @@ package ru.netology.web.data;
 import lombok.Value;
 
 public class DataHelper {
-    public static DataHelper.CardInfo CardInfo;
 
     private DataHelper() {
     }
@@ -32,11 +31,14 @@ public class DataHelper {
         String number;
     }
 
-    public static CardInfo getFirstCardInfo() {
-        return new CardInfo("5559 0000 0000 0001");
-    }
-
-    public static CardInfo getSecondCardInfo() {
-        return new CardInfo("5559 0000 0000 0002");
+    public static CardInfo getCardInfo(String id) {
+        if (id.equals("1")) {
+            return new CardInfo("5559 0000 0000 0001");
+        }
+        if (id.equals("2")) {
+            return new CardInfo("5559 0000 0000 0002");
+        } else {
+            return new CardInfo("0000 0000 0000 0000");
+        }
     }
 }

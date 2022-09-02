@@ -1,5 +1,6 @@
 package ru.netology.web.page;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import ru.netology.web.data.DataHelper;
 
@@ -19,14 +20,7 @@ public class MoneyTransferPage {
         return new DashboardPage();
     }
 
-    public DashboardPage moneyTransferWithKnownMistake(String from, String amountToTransfer) {
-        amount.setValue(amountToTransfer);
-        fromField.setValue(from);
-        transfer.click();
-        return new DashboardPage();
-    }
-
-    public SelenideElement getError() {
-        return error;
+    public void getError() {
+        error.shouldBe(Condition.visible);
     }
 }
