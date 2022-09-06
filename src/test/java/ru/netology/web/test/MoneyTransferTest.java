@@ -104,56 +104,21 @@ class MoneyTransferTest {
     }
 
     @Test
-    void shouldTransferFullAmountFromAccount() {
+    void shouldNotTransferAmountMoreThanWhatIsOnTheAccount() {
         var dashboardPage = new DashboardPage();
-        String balance = String.valueOf((dashboardPage.getCardBalance("2")));
+        String balance = String.valueOf(dashboardPage.getCardBalance("1") + 100);
 
-        int expectedSC = 0;
-        int expectedFC = dashboardPage.getCardBalance("1") + dashboardPage.getCardBalance("2");
+        int expectedFC = dashboardPage.getCardBalance("1");
+        int expectedSC = dashboardPage.getCardBalance("2");
 
-        dashboardPage.getMoneyTransferFromSecondToFirst();
+        dashboardPage.getMoneyTransferFromFirstToSecond();
         var moneyTransferPage = new MoneyTransferPage();
-        moneyTransferPage.moneyTransfer(DataHelper.getCardInfo("2"), balance);
+        moneyTransferPage.moneyTransfer(DataHelper.getCardInfo("1"), balance);
 
         int actualFC = dashboardPage.getCardBalance("1");
         int actualSC = dashboardPage.getCardBalance("2");
 
-        Assertions.assertEquals(expectedFC, actualFC);
-        Assertions.assertEquals(expectedSC, actualSC);
-    }
-
-    @Test
-    void shouldTryToTransferFromAccountWithBalanceEqualZero() {
-        var dashboardPage = new DashboardPage();
-        int checkCard = dashboardPage.getCardBalance("1");
-        String cardID1;
-        String cardID2;
-        String balance1;
-        String balance2;
-
-        if (checkCard > 0) {
-            cardID1 = "1";
-            cardID2 = "2";
-            balance1 = String.valueOf(dashboardPage.getCardBalance(cardID1));
-            balance2 = String.valueOf(dashboardPage.getCardBalance(cardID2));
-            dashboardPage.getMoneyTransferFromFirstToSecond();
-        } else {
-            cardID1 = "2";
-            cardID2 = "1";
-            balance1 = String.valueOf(dashboardPage.getCardBalance(cardID2));
-            balance2 = String.valueOf(dashboardPage.getCardBalance(cardID1));
-            dashboardPage.getMoneyTransferFromSecondToFirst();
-        }
-        int expectedFC = -100;
-        int expectedSC = Integer.parseInt(balance2) + Integer.parseInt(balance1) + 100;
-
-        var moneyTransferPage = new MoneyTransferPage();
-        moneyTransferPage.moneyTransfer(DataHelper.getCardInfo(cardID1), String.valueOf(Integer.parseInt(balance1) + 100));
-
-        int actualFC = dashboardPage.getCardBalance(cardID1);
-        int actualSC = dashboardPage.getCardBalance(cardID2);
-
-        Assertions.assertEquals(expectedFC, actualFC);
-        Assertions.assertEquals(expectedSC, actualSC);
+        Assertions.assertNotEquals(expectedFC, actualFC);
+        Assertions.assertNotEquals(expectedSC, actualSC);
     }
 }
